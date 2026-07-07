@@ -52,52 +52,67 @@ with SB(uc=True, rtf=True) as sb:
                 except Exception:
                     full_name = "N/A"
 
-            # --- 2. AFFILIATED COMPANY ---
+            # --- 2. AGENT PROFILE LINK ---
+            try:
+                # Finds the anchor tag that points to the agent profile directory string path
+                link_element = card.find_element("css selector", 'a[href*="/realestateagents/"]')
+                relative_href = link_element.get_attribute("href")
+                
+                # Format to absolute link if it's relative
+                if relative_href and not relative_href.startswith("http"):
+                    agent_link = f"https://www.realtor.com{relative_href}"
+                else:
+                    agent_link = relative_href
+            except Exception:
+                agent_link = "N/A"
+
+            # --- 3. AFFILIATED COMPANY ---
             try:
                 company_element = card.find_element("css selector", '[data-testid="agent-title-section-component"] .iJPZCK p')
                 affiliated_company = company_element.text.strip()
             except Exception:
                 affiliated_company = "N/A"
 
-            # --- 3. IMAGE URL ---
+            # --- 4. IMAGE URL ---
             try:
                 image_url = card.find_element("css selector", '[data-testid="avatar-img"]').get_attribute("src")
             except Exception:
                 image_url = "N/A"
 
-            # --- 4. RATING ---
+            # --- 5. RATING ---
             try:
                 rating_element = card.find_element("css selector", '[data-testid="agent-ratings-reviews-component"] p')
                 rating = rating_element.text.strip()
             except Exception:
                 rating = "N/A"
 
-            # --- 5. REVIEWS & TESTIMONIALS ---
+            # --- 6. REVIEWS & TESTIMONIALS ---
             try:
                 metrics_element = card.find_element("css selector", '.dqgPGS')
                 metrics = metrics_element.text.replace("\n", " ").strip()
             except Exception:
                 metrics = "N/A"
 
-            # --- 6. PRICE RANGE ---
+            # --- 7. PRICE RANGE ---
             try:
                 price_element = card.find_element("css selector", '[data-testid="agent-sales-and-price-component"] .breFRQ span')
                 price_range = price_element.text.strip()
             except Exception:
                 price_range = "N/A"
 
-            # --- 7. RECENT SALES ---
+            # --- 8. RECENT SALES ---
             try:
                 sales_element = card.find_element("css selector", '[data-testid="agent-sales-and-price-component"] > p')
                 recent_sales = sales_element.text.strip()
             except Exception:
                 recent_sales = "N/A"
 
-            # Build data mapping dictionary
+            # Build data mapping dictionary (including the newly added Link key)
             agent_data = {
                 "Page": page_number,
                 "Index": index,
                 "Name": full_name,
+                "Agent Link": agent_link,
                 "Affiliated Company": affiliated_company,
                 "Image URL": image_url,
                 "Rating": rating,
@@ -107,7 +122,7 @@ with SB(uc=True, rtf=True) as sb:
             }
             
             all_agents.append(agent_data)
-            print(f"Logged [{index}]: {full_name}")
+            print(f"Logged [{index}]: {full_name} -> {agent_link}")
 
         # --- AUTO-SAVE PROGRESS FALLBACK ---
         df_checkpoint = pd.DataFrame(all_agents)
@@ -119,7 +134,6 @@ with SB(uc=True, rtf=True) as sb:
         try:
             next_button_selector = 'a.next-link[aria-label="Go to next page"]'
             
-            # Corrected: standard check without the unsupported timeout keyword argument
             if sb.is_element_visible(next_button_selector):
                 next_button = sb.find_element(next_button_selector)
                 next_page_href = next_button.get_attribute("href")
