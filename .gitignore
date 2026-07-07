@@ -1,3 +1,5 @@
 /.venv
 /downloaded_files
 /agents_data.csv
+/agents_data_cleaned.csv
+/agents_detailed_info.csv
